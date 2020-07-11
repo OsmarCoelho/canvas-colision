@@ -1,5 +1,5 @@
 class sprite{
-	constructor(img, x, y, w, h){
+	constructor(img, x, y, w, h, ){
 		this.img = img;
 		this.x = x;
 		this.y = y;
@@ -18,12 +18,26 @@ class sprite{
 	
 }
 
+class animacao extends sprite{
+	constructor(img, xA, yA, wA, hA, x, y, w, h){
+		super(img, x, y, w, h);
+		this. xA = xA;
+		this. yA = yA;
+		this. wA = wA;
+		this. hA = hA;
+	}
+
+	animar(ctx){
+		ctx.drawImage(this.img, this.xA, this.yA, this.wA, this.hA, this.x, this.y, this.w, this.h);
+	}
+}
+
 let canvas = document.querySelector('#canvas');
 let ctx = canvas.getContext('2d');
 
 
 let imgPersonagem = new Image();
-imgPersonagem.src = "bodito.png";
+imgPersonagem.src = "spriteAnimado.png";
 
 let imgBase = new Image();
 imgBase.src = "base.png";
@@ -31,7 +45,7 @@ imgBase.src = "base.png";
 let imgPlat = new Image();
 imgPlat.src = "plataforma.png";
 
-let personagem = new sprite(imgPersonagem, 125, 455, 80, 80);
+let personagem = new animacao(imgPersonagem, 50, 0 , 50, 37, 125, 455, 50, 37);
 
 let fundo = new sprite(null, 0, 0, 720, 560);
 
@@ -56,7 +70,7 @@ function desenhaJogo() {
 function carregaInicio(){
 	ctx.fillStyle = "lightblue";
 	fundo.desenha(ctx);
-	personagem.desenha(ctx);
+	personagem.animar(ctx);
 	ctx.fillStyle = "black";
 	for(let i = 0; i < obstaculos.length; i++){
 		obstaculos[i].desenha(ctx);
