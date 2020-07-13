@@ -34,10 +34,11 @@ class animacao extends sprite{
 
 let canvas = document.querySelector('#canvas');
 let ctx = canvas.getContext('2d');
-
+let s = 0;
 
 let imgPersonagem = new Image();
-imgPersonagem.src = "spriteAnimado.png";
+imgPersonagem.src = "tiro.png";
+let personagem = new animacao(imgPersonagem, 0, 0 , 50, 37, 125, 455, 50, 37);
 
 let imgBase = new Image();
 imgBase.src = "base.png";
@@ -45,7 +46,6 @@ imgBase.src = "base.png";
 let imgPlat = new Image();
 imgPlat.src = "plataforma.png";
 
-let personagem = new animacao(imgPersonagem, 50, 0 , 50, 37, 125, 455, 50, 37);
 
 let fundo = new sprite(null, 0, 0, 720, 560);
 
@@ -62,12 +62,30 @@ let plataformas = [];
 plataformas.push(new sprite(imgPlat, -20, 400, 142, 32));
 plataformas.push(new sprite(imgPlat, 300, 355, 142, 32));
 
-function desenhaJogo() {
-	ctx.clearRect(0, 0, 720, 560);	
-	carregaInicio();
+function corre(s){
+	imgPersonagem.src = "corre.png";
+	personagem.img = imgPersonagem;
+	personagem.xA = personagem.xA + 50;
+	if(personagem.xA >= 300){
+		personagem.xA = 0;
+	}
+}
+function atira(s){
+	imgPersonagem.src = "tiro.png";
+	personagem.img = imgPersonagem;
+}
+function pula(s){
+	imgPersonagem.src = "pulo.png";
+	personagem.img = imgPersonagem;
+}
+function parado(s){
+	s = 0;
+	imgPersonagem.src = "tiro.png";
+	personagem.img = imgPersonagem;
 }
 
-function carregaInicio(){
+function desenhaJogo() {
+	ctx.clearRect(0, 0, 720, 560);	
 	ctx.fillStyle = "lightblue";
 	fundo.desenha(ctx);
 	personagem.animar(ctx);
@@ -81,14 +99,25 @@ function carregaInicio(){
 	for(let i = 0; i < plataformas.length; i++){
 		plataformas[i].desenha(ctx);
 	}
+	document.body.addEventListener('keydown', (e) => {
+		if(e.key.toLowerCase() == "arrowright"){
+			personagem.x = personagem.x + 1;
+			corre(s);
+		} else if(e.key.toLowerCase() == "arrowleft"){
+			personagem.x = personagem.x - 1;
+			corre(s);
+		} else if (e.key.toLowerCase() == "arrowup"){
+			alert(s);
+		} else if(e.key.toLowerCase() == " "){
+			alert(s);
+		}
+	})
 }
 
-canvas.addEventListener('mousemove', (e) => {
-	personagem.x = e.offsetX;
-	personagem.y = e.offsetY;
+window.addEventListener('load', () => {
 	desenhaJogo();
 })
 
-window.addEventListener('load', () => {
-	carregaInicio();
-})
+window.setInterval(()=>{
+	desenhaJogo();
+} , 132);
