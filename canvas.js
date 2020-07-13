@@ -1,3 +1,5 @@
+const LARGURA = 720;
+const ALTURA = 560;
 class sprite{
 	constructor(img, x, y, w, h, ){
 		this.img = img;
@@ -32,13 +34,32 @@ class animacao extends sprite{
 	}
 }
 
+class mob extends sprite/*animacao*/{
+	/*constructor(img, xA, yA, wA, hA, x, y, w, h){
+		super(img, xA, yA, wA, hA, x, y, w, h);
+		this.velocidade = -4 * Math.random() -1;
+	}*/
+	constructor(img, x, y, w, h){
+		super(img, LARGURA, Math.random() *(ALTURA - 60 - h), w, h);
+		this.velocidade = -5 * Math.random() -1;
+	}
+
+	atualizaMob(){
+		this.x = this.x + this.velocidade;
+		if(this.x + this.w < 0){
+			this.x = LARGURA;
+			this.y = Math.random() *(ALTURA - 60 - this.h);
+		}
+	}
+}
+
 let canvas = document.querySelector('#canvas');
 let ctx = canvas.getContext('2d');
 let s = 0;
 
 let imgPersonagem = new Image();
 imgPersonagem.src = "tiro.png";
-let personagem = new animacao(imgPersonagem, 0, 0 , 50, 37, 125, 455, 50, 37);
+let personagem = new animacao(imgPersonagem, 0, 0 , 50, 37, 125, 490, 50, 37);
 
 let imgBase = new Image();
 imgBase.src = "base.png";
@@ -50,8 +71,8 @@ imgPlat.src = "plataforma.png";
 let fundo = new sprite(null, 0, 0, 720, 560);
 
 let obstaculos = [];
-obstaculos.push(new sprite(null, 350, 335, 10, 20));
-obstaculos.push(new sprite(null, 500, 485, 50, 50));
+obstaculos.push(new mob(null, 350, 335, 10, 20));
+obstaculos.push(new mob(null, 500, 485, 50, 50));
 
 let bases = [];
 for (let i = 0; i < 2; i++) {
@@ -62,26 +83,60 @@ let plataformas = [];
 plataformas.push(new sprite(imgPlat, -20, 400, 142, 32));
 plataformas.push(new sprite(imgPlat, 300, 355, 142, 32));
 
-function corre(s){
-	imgPersonagem.src = "corre.png";
-	personagem.img = imgPersonagem;
-	personagem.xA = personagem.xA + 50;
-	if(personagem.xA >= 300){
-		personagem.xA = 0;
+function corre(e){
+	if(e.key.toLowerCase() == "arrowright"){
+		setInterval(()=>{
+			imgPersonagem.src = "corre.png";
+			personagem.img = imgPersonagem;
+			personagem.xA += 50;
+			if(personagem.xA >= 300){
+				personagem.xA = 0;
+			}
+		}, 66)
+		personagem.x += 1;
+		if(personagem.x + personagem.w > LARGURA){
+			personagem.x = 0;
+		}
+	} else if(e.key.toLowerCase() == "arrowleft"){
+		setInterval(()=>{
+			imgPersonagem.src = "correInvertido.png";
+			personagem.img = imgPersonagem;
+			personagem.xA += 50;
+			if(personagem.xA >= 300){
+				personagem.xA = 0;
+			}
+			personagem.x += 1;
+			if(personagem.x + personagem.w > LARGURA){
+				personagem.x = 0;
+			}
+		}, 66)
 	}
+	parado();
+	
 }
-function atira(s){
+function atira(){
 	imgPersonagem.src = "tiro.png";
 	personagem.img = imgPersonagem;
+	for(let i = 0; i < 4; i++){
+		setTimeout(() => {
+			personagem.xA = 50 * i;
+			if(personagem.xA >= 200){
+				personagem.xA = 0;
+			}
+		}, 132);
+	}
+	
+
 }
-function pula(s){
+function pula(){
 	imgPersonagem.src = "pulo.png";
 	personagem.img = imgPersonagem;
+	personagem.xA = 0;
 }
-function parado(s){
-	s = 0;
+function parado(){
 	imgPersonagem.src = "tiro.png";
 	personagem.img = imgPersonagem;
+	personagem.xA = 0;
 }
 
 function desenhaJogo() {
@@ -92,6 +147,7 @@ function desenhaJogo() {
 	ctx.fillStyle = "black";
 	for(let i = 0; i < obstaculos.length; i++){
 		obstaculos[i].desenha(ctx);
+		obstaculos[i].atualizaMob();
 	}
 	for(let i = 0; i < bases.length; i++){
 		bases[i].desenha(ctx);
@@ -101,22 +157,16 @@ function desenhaJogo() {
 	}
 	document.body.addEventListener('keydown', (e) => {
 		if(e.key.toLowerCase() == "arrowright"){
-			personagem.x = personagem.x + 1;
-			corre(s);
+			corre(e);
 		} else if(e.key.toLowerCase() == "arrowleft"){
-			personagem.x = personagem.x - 1;
-			corre(s);
+			corre(e);
 		} else if (e.key.toLowerCase() == "arrowup"){
-			alert(s);
+			pula();
 		} else if(e.key.toLowerCase() == " "){
-			alert(s);
+			atira();
 		}
 	})
 }
-
-window.addEventListener('load', () => {
-	desenhaJogo();
-})
 
 window.setInterval(()=>{
 	desenhaJogo();
