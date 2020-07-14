@@ -1,54 +1,83 @@
 const LARGURA = 720;
 const ALTURA = 560;
+
 class sprite{
-	constructor(img, x, y, w, h, ){
+	constructor(img, xA, yA, wA, hA, x, y, w, h){
 		this.img = img;
+		this. xA = xA;
+		this. yA = yA;
+		this. wA = wA;
+		this. hA = hA;
 		this.x = x;
 		this.y = y;
 		this.w = w;
 		this.h = h;
 	}
 
+	get centro(){
+		return {
+			x : this.x + this.w/2,
+			y : this.y + this.h/2
+		}
+	}
+
 	desenha(ctx){
 		if(this.img){
-			ctx.drawImage(this.img, this.x, this.y, this.w, this.h);	
+			ctx.drawImage(this.img, this.xA, this.yA, this.wA, this.hA, this.x, this.y, this.w, this.h);	
 		} else{
 			ctx.fillRect(this.x, this.y, this.w, this.h);
 		}	
 	}
 
-	
+	colide(colisor){
+		let a = Math.abs(colisor.centro.x - this.centro.x);
+		let b = Math.abs(colisor.centro.y - this.centro.y);
+		let d = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+		let r1 = this.h/2;
+		let r2 = colisor.h/2;
+		if(d <= r1 + r2){
+			return true;
+		} else{
+			return false;
+		}
+
+	}
 }
 
-class animacao extends sprite{
+class mob extends sprite{
 	constructor(img, xA, yA, wA, hA, x, y, w, h){
-		super(img, x, y, w, h);
-		this. xA = xA;
-		this. yA = yA;
-		this. wA = wA;
-		this. hA = hA;
-	}
-
-	animar(ctx){
-		ctx.drawImage(this.img, this.xA, this.yA, this.wA, this.hA, this.x, this.y, this.w, this.h);
-	}
-}
-
-class mob extends sprite/*animacao*/{
-	/*constructor(img, xA, yA, wA, hA, x, y, w, h){
-		super(img, xA, yA, wA, hA, x, y, w, h);
-		this.velocidade = -4 * Math.random() -1;
-	}*/
-	constructor(img, x, y, w, h){
-		super(img, LARGURA, Math.random() *(ALTURA - 60 - h), w, h);
+		super(img, 0, 0, w, h, x, -20, w, h);
 		this.velocidade = -5 * Math.random() -1;
 	}
 
 	atualizaMob(){
-		this.x = this.x + this.velocidade;
-		if(this.x + this.w < 0){
-			this.x = LARGURA;
-			this.y = Math.random() *(ALTURA - 60 - this.h);
+		this.y = this.y - this.velocidade;
+		if(this.y + this.h > ALTURA){
+			this.y = 0;
+			this.x = Math.random() * 700;
+		}
+	}
+}
+
+class personagem extends sprite{
+	constructor(img, xA, yA, wA, hA, x, y, w, h){
+		super(img, xA, yA, wA, hA, x, y, w, h);
+		this.tiros = [];
+	}
+
+	tiro(){
+		this.tiros.push(new sprite(null, 0, 0, 2, 2, this.x + this.h/3, this.y, 2, 2));
+	}
+
+	atualizaTiro(){
+		for(tiro of this.tiros){
+			tiro.y -= 5;
+		}
+	}
+	
+	destroiTiro(tiro){
+		if(tiro.y + tiro.h < 0){
+			this.tiros.splice(this.tiros.indexOf(tiro), 1);
 		}
 	}
 }
@@ -58,8 +87,8 @@ let ctx = canvas.getContext('2d');
 let s = 0;
 
 let imgPersonagem = new Image();
-imgPersonagem.src = "tiro.png";
-let personagem = new animacao(imgPersonagem, 0, 0 , 50, 37, 125, 490, 50, 37);
+imgPersonagem.src = "corre.png";
+let per = new personagem(imgPersonagem, 0, 0 , 50, 37, 125, 495, 50, 37);
 
 let imgBase = new Image();
 imgBase.src = "base.png";
@@ -68,106 +97,102 @@ let imgPlat = new Image();
 imgPlat.src = "plataforma.png";
 
 
-let fundo = new sprite(null, 0, 0, 720, 560);
+let fundo = new sprite(null, 0, 0, 720, 560, 0, 0, 720, 560);
 
 let obstaculos = [];
-obstaculos.push(new mob(null, 350, 335, 10, 20));
-obstaculos.push(new mob(null, 500, 485, 50, 50));
+obstaculos.push(new mob(null, 0, 0, 10, 20, Math.random() * LARGURA, -20, 20, 20));
+obstaculos.push(new mob(null, 0, 0, 10, 20, Math.random() * LARGURA, -20, 20, 20));
+obstaculos.push(new mob(null, 0, 0, 10, 20, Math.random() * LARGURA, -20, 20, 20));
+obstaculos.push(new mob(null, 0, 0, 10, 20, Math.random() * LARGURA, -20, 20, 20));
+obstaculos.push(new mob(null, 0, 0, 10, 20, Math.random() * LARGURA, -20, 20, 20));
+
 
 let bases = [];
 for (let i = 0; i < 2; i++) {
-	bases.push(new sprite(imgBase, (-22 + (i* 368)), 515, 380, 60));
+	bases.push(new sprite(imgBase, 0, 0, 380, 60, (-22 + (i* 368)), 515, 400, 60));
 }
 
-let plataformas = [];
-plataformas.push(new sprite(imgPlat, -20, 400, 142, 32));
-plataformas.push(new sprite(imgPlat, 300, 355, 142, 32));
-
-function corre(e){
-	if(e.key.toLowerCase() == "arrowright"){
-		setInterval(()=>{
-			imgPersonagem.src = "corre.png";
-			personagem.img = imgPersonagem;
-			personagem.xA += 50;
-			if(personagem.xA >= 300){
-				personagem.xA = 0;
-			}
-		}, 66)
-		personagem.x += 1;
-		if(personagem.x + personagem.w > LARGURA){
-			personagem.x = 0;
+let aux = 0;
+function corre(){
+	if(per.x > aux){
+		imgPersonagem.src = "corre.png";
+		per.img = imgPersonagem;
+		per.xA = per.xA + 50;
+		if(per.xA >= 300){
+			per.xA = 0;
 		}
-	} else if(e.key.toLowerCase() == "arrowleft"){
-		setInterval(()=>{
-			imgPersonagem.src = "correInvertido.png";
-			personagem.img = imgPersonagem;
-			personagem.xA += 50;
-			if(personagem.xA >= 300){
-				personagem.xA = 0;
-			}
-			personagem.x += 1;
-			if(personagem.x + personagem.w > LARGURA){
-				personagem.x = 0;
-			}
-		}, 66)
+	}else if(per.x < aux){
+		imgPersonagem.src = "correInvertido.png";
+		per.img = imgPersonagem;
+		per.xA = per.xA + 50;
+		if(per.xA >= 300){
+			per.xA = 0;
+		}
 	}
-	parado();
-	
-}
-function atira(){
-	imgPersonagem.src = "tiro.png";
-	personagem.img = imgPersonagem;
-	for(let i = 0; i < 4; i++){
-		setTimeout(() => {
-			personagem.xA = 50 * i;
-			if(personagem.xA >= 200){
-				personagem.xA = 0;
-			}
-		}, 132);
-	}
-	
-
-}
-function pula(){
-	imgPersonagem.src = "pulo.png";
-	personagem.img = imgPersonagem;
-	personagem.xA = 0;
-}
-function parado(){
-	imgPersonagem.src = "tiro.png";
-	personagem.img = imgPersonagem;
-	personagem.xA = 0;
+	aux = per.x;	
 }
 
-function desenhaJogo() {
+function detectaColisao(){
+	for(obstaculo of obstaculos){
+		obstaculo.desenha(ctx);
+		obstaculo.atualizaMob();
+		const atingiu = obstaculo.colide(per);
+		if(atingiu == true){
+			obstaculo.x = -20;
+		}
+		for(tiro of per.tiros){
+			const atingiu = obstaculo.colide(tiro);
+			if(atingiu == true){
+				obstaculo.x = -20;
+				per.destroiTiro(tiro);
+			}	
+		}
+	}
+}
+
+function atualizaInimigo(){
+	ctx.fillStyle = "black";
+	for(obstaculo of obstaculos){
+		obstaculo.desenha(ctx);
+		obstaculo.atualizaMob();
+	}
+}
+
+function atualizaJogador(){
+	per.desenha(ctx);
+	canvas.addEventListener('mousemove', (e) => {
+		per.x = e.offsetX - per.w/2;
+		corre();
+	})
+	document.addEventListener('click', (e) => {		
+		imgPersonagem.src = "tiro.png";
+		per.img = imgPersonagem;
+		per.xA = 0;
+		per.tiro();
+	})
+}
+
+function atualizaTiros(){
+	for(tiro of per.tiros){
+		tiro.desenha(ctx);
+		per.destroiTiro(tiro);
+	}
+	per.atualizaTiro();
+}
+
+function desenhaJogo(){	
 	ctx.clearRect(0, 0, 720, 560);	
 	ctx.fillStyle = "lightblue";
 	fundo.desenha(ctx);
-	personagem.animar(ctx);
-	ctx.fillStyle = "black";
-	for(let i = 0; i < obstaculos.length; i++){
-		obstaculos[i].desenha(ctx);
-		obstaculos[i].atualizaMob();
-	}
-	for(let i = 0; i < bases.length; i++){
-		bases[i].desenha(ctx);
+	atualizaInimigo();		
+	atualizaJogador();
+	atualizaTiros();	
+	detectaColisao();
+	for(base of bases){
+		base.desenha(ctx);
 	}	
-	for(let i = 0; i < plataformas.length; i++){
-		plataformas[i].desenha(ctx);
-	}
-	document.body.addEventListener('keydown', (e) => {
-		if(e.key.toLowerCase() == "arrowright"){
-			corre(e);
-		} else if(e.key.toLowerCase() == "arrowleft"){
-			corre(e);
-		} else if (e.key.toLowerCase() == "arrowup"){
-			pula();
-		} else if(e.key.toLowerCase() == " "){
-			atira();
-		}
-	})
 }
 
 window.setInterval(()=>{
 	desenhaJogo();
-} , 132);
+}, 33);
