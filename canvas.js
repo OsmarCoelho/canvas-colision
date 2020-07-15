@@ -63,6 +63,7 @@ class personagem extends sprite{
 	constructor(img, xA, yA, wA, hA, x, y, w, h){
 		super(img, xA, yA, wA, hA, x, y, w, h);
 		this.tiros = [];
+		this.vida = 100;
 	}
 
 	tiro(){
@@ -78,6 +79,14 @@ class personagem extends sprite{
 	destroiTiro(tiro){
 		if(tiro.y + tiro.h < 0){
 			this.tiros.splice(this.tiros.indexOf(tiro), 1);
+		}
+	}
+
+	atualizaVida(){
+		this.vida -= 10;
+		if(this.vida <= 0){
+			alert("Você morreu...");
+			location.reload();
 		}
 	}
 }
@@ -112,6 +121,8 @@ for (let i = 0; i < 2; i++) {
 	bases.push(new sprite(imgBase, 0, 0, 380, 60, (-22 + (i* 368)), 515, 400, 60));
 }
 
+let pt = 0;
+
 let aux = 0;
 function corre(){
 	if(per.x > aux){
@@ -139,11 +150,13 @@ function detectaColisao(){
 		const atingiu = obstaculo.colide(per);
 		if(atingiu == true){
 			obstaculo.x = -20;
+			per.atualizaVida();
 		}
 		for(tiro of per.tiros){
 			const atingiu = obstaculo.colide(tiro);
 			if(atingiu == true){
 				obstaculo.x = -20;
+				pt++;
 				per.destroiTiro(tiro);
 			}	
 		}
@@ -180,6 +193,26 @@ function atualizaTiros(){
 	per.atualizaTiro();
 }
 
+function desenhaVida(){
+	ctx.fillStyle = "darkred";
+	ctx.strokeStyle = "black";
+	ctx.fillRect(10, 10, per.vida, 10);
+	ctx.strokeRect(10,10, 100, 10);
+}
+
+
+function atualizaPontuação(){
+	ctx.font = "30px Arial";
+	ctx.fillStyle = "black";
+	ctx.fillText(pt, 680, 30);
+}
+
+function instrucao(){
+	alert("Use o mouse para se movimentar no eixo X e o click esquerdo para atirar.");
+}
+
+
+instrucao();
 function desenhaJogo(){	
 	ctx.clearRect(0, 0, 720, 560);	
 	ctx.fillStyle = "lightblue";
@@ -191,8 +224,11 @@ function desenhaJogo(){
 	for(base of bases){
 		base.desenha(ctx);
 	}	
+	desenhaVida();
+	atualizaPontuação();
 }
 
 window.setInterval(()=>{
+	console.log(per.tiros);
 	desenhaJogo();
 }, 33);
